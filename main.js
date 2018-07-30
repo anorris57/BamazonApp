@@ -6,9 +6,9 @@ var connection = mysql.createConnection({
   // Your port; if not 3306
   port: 3306,
   // Your username
-  user: "   ",
-  // Enter your password for mysql workbench
-  password: "    ",
+  user: "root",
+  // Your password
+  password: " ",
   database: "bamazon_db"
 });
 //Check connection
@@ -51,19 +51,30 @@ function productsForSale() {
         //console.log(userid);
         var userAmt = parseInt(input.userAmt);
         //console.log(userAmt);
-        connection.query("SELECT * FROM products", function (err, res) {
+        connection.query("SELECT * FROM products", function (err, res) {//check if your store has enough of the product to meet the customer's request.If not, the app should log a phrase like `Insufficient quantity!`, and then prevent the order from going through.
           if (res[userid - 1].stockAmt < userAmt){
             console.log("Insufficient quantity!");
             connection.end();
           } else {
-            console.log("You just brought something");
+            updateStockAmt();
+            console.log(`Congratulations on your purchase. Total amount comes to ${userAmt * parseFloat(res[userid-1].sale_price)}. Thank you and come again `);
+            connection.end();
+          }
+          function updateStockAmt (){
+            var newStockAmt = res[userid - 1].stockAmt - userid;
+            var sql = "UPDATE products SET stockAmt = ? Where id = ? "
+            var arr = [newStockAmt, res[userid - 1].id]
+            connection.query(sql, arr, function (err, result){
+              if (err) throw err;
+              console.log(result.affectedRows + " record(s) updated");
+            });
           }
         
         });
       })
     }
     
-  
+
 
       
         

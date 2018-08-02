@@ -33,6 +33,8 @@ function menuOptions() {
        listLowInventory();
      } else if (answer.menuChoice === 'Add to Inventory') {
        addInventory();
+     } else {
+       addProduct();
      }
     });
   }
@@ -58,29 +60,92 @@ function menuOptions() {
   }
 
   function addInventory() {
-    inquirer
-      .prompt([
-        {
-          type: "input",
-          message: "What is the id of the product?",
-          name: "productid"
-        },
-        {
-          type: "input",
-          message: "How many units would you like to add?",
-          name:"addStockAmt"
-        }
-      ])
-      .then(function(input){
-        var productid = parseInt(input.productid);
-        var addStockAmt = parseInt(input.addStockAmt);
 
+    connection.query("SELECT * FROM products" , function(err, res) {
+      if (err) throw err;
+       inquirer
+        .prompt([
+          {
+            type: "input",
+            message: "What is the id of the product?",
+            name: "productid"
+          },
+          {
+            type: "input",
+            message: "How many units would you like to add?",
+            name:"addStockAmt"
+          }
+        ])
+        .then(function(input){
+        
+          var productid = parseInt(input.productid);
+          var addStockAmt = parseInt(input.addStockAmt);
+          
+          var newStockAmt = res[productid - 1].stockAmt + addStockAmt;
+          var sql = "Update products Set stockAmt = ? Where id = ?"
+          var arr = [newStockAmt, res[productid - 1].id]
+          connection.query(sql, arr, function (err, res) {
+            if (err) throw err;
+            console.log(res.affectedRows + " record(s) updated");
+          }); 
+          connection.end();
       });
 
 
-  }
+    });
    
-       
+  }
+
+  function addProduct () {
+
+    inquirer
+      .prompt([
+        {
+          name: "product",
+          type: "input",
+          message: "What is the name of the product?" 
+        },
+        {
+          name: "department",
+          type: "input",
+          message: "Enter the department for the item:"
+        },
+        {
+          name: "price",
+          type: "input",
+          message: "What is the sale price (00.00)",
+        },
+        {
+          name: "stockAmt",
+          type: "input",
+          message: "Enter total number of units:",
+          validate: function(value) {
+            if (isNaN(value) === false) {
+              return true;
+            }
+            return false;
+          }
+        }
+      ])
+      .then(function(answer) {
+        connection.query(
+          "INSERT INTO products SET ?",
+          {
+            product: answer.product,
+            department: answer.department,
+            sale_price: answer.price,
+            stockAmt: answer.stockAmt
+          },
+          function(err) {
+            if (err) throw err;
+            console.log("Your product has been successfully added.");
+            connection.end();
+          }
+        );
+      });
+
+  }
+
   
     
   

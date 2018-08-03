@@ -61,7 +61,7 @@ function productsForSale() {
             connection.end();
           }
           function updateStockAmt (){
-            var newStockAmt = res[userid - 1].stockAmt - userid;
+            var newStockAmt = res[userid - 1].stockAmt - userAmt;
             var sql = "UPDATE products SET stockAmt = ? Where id = ? "
             var arr = [newStockAmt, res[userid - 1].id]
             connection.query(sql, arr, function (err, result){
